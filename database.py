@@ -1,4 +1,3 @@
-# database.py
 import asyncpg
 import os
 from dotenv import load_dotenv
@@ -23,7 +22,8 @@ async def init_db():
         # Foydalanuvchilar
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                user_id BIGINT PRIMARY KEY
+                user_id BIGINT PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
 
@@ -47,16 +47,6 @@ async def init_db():
             );
         """)
 
-        async def get_today_users():
-    query = """
-        SELECT COUNT(*) 
-        FROM users 
-        WHERE DATE(created_at) = $1
-    """
-    today = date.today()
-    row = await db.fetchrow(query, today)
-    return row["count"] if row else 0
-    
         # Adminlar jadvali
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS admins (
@@ -85,6 +75,15 @@ async def get_user_count():
     async with db_pool.acquire() as conn:
         row = await conn.fetchrow("SELECT COUNT(*) FROM users")
         return row[0]
+
+# === Bugun qo'shilgan foydalanuvchilar ===
+async def get_today_users():
+    async with db_pool.acquire() as conn:
+        today = date.today()
+        row = await conn.fetchrow("""
+            SELECT COUNT(*) FROM users WHERE DATE(created_at) = $1
+        """, today)
+        return row[0] if row else 0
 
 # === Kod qo'shish ===
 async def add_kino_code(code, channel, message_id, post_count, title):
