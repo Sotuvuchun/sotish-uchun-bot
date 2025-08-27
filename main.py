@@ -1,6 +1,8 @@
 # === IMPORTLAR ===
 import io
 import os
+import time
+from datetime import datetime, date
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -23,7 +25,8 @@ from database import (
     get_code_stat,
     increment_stat,
     get_all_user_ids,
-    update_anime_code
+    update_anime_code,
+    get_today_users
 )
 
 
@@ -841,13 +844,30 @@ async def show_all_animes(message: types.Message):
 
         await message.answer(text, parse_mode="Markdown")
         
-# === Statistika
+# 📊 Statistika
 @dp.message_handler(lambda m: m.text == "📊 Statistika")
 async def stats(message: types.Message):
+    # ⏱ Pingni o'lchash
+    start = time.perf_counter()
+    await db.fetch("SELECT 1;")  # oddiy so'rov
+    ping = (time.perf_counter() - start) * 1000  # ms ga aylantiramiz
+
+    # 📂 Kodlar va foydalanuvchilar soni
     kodlar = await get_all_codes()
     foydalanuvchilar = await get_user_count()
-    await message.answer(f"📦 Kodlar: {len(kodlar)}\n👥 Foydalanuvchilar: {foydalanuvchilar}")
 
+    # 📅 Bugun qo'shilgan foydalanuvchilar
+    today_users = await get_today_users()
+
+    # 📊 Xabar
+    text = (
+        f"💡 O'rtacha yuklanish: {ping:.2f} ms\n\n"
+        f"👥 Foydalanuvchilar: {foydalanuvchilar} ta\n\n"
+        f"📂 Barcha yuklangan animelar: {len(kodlar)} ta\n\n"
+        f"📅 Bugun qo'shilgan foydalanuvchilar: {today_users} ta"
+    )
+    await message.answer(text)
+    
 @dp.message_handler(lambda m: m.text == "📤 Post qilish")
 async def start_post_process(message: types.Message):
     if message.from_user.id in ADMINS:
