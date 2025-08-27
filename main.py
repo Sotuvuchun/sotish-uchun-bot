@@ -54,7 +54,7 @@ async def make_subscribe_markup(code):
     keyboard.add(InlineKeyboardButton("✅ Tekshirish", callback_data=f"check_sub:{code}"))
     return keyboard
 
-ADMINS = {6486825926, 7227368893}
+ADMINS = {6486825926, 7137566109}
 
 # === HOLATLAR ===
 
