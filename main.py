@@ -848,9 +848,11 @@ async def show_all_animes(message: types.Message):
 @dp.message_handler(lambda m: m.text == "📊 Statistika")
 async def stats(message: types.Message):
     # ⏱ Pingni o'lchash
-    start = time.perf_counter()
-    await db.fetch("SELECT 1;")  # oddiy so'rov
-    ping = (time.perf_counter() - start) * 1000  # ms ga aylantiramiz
+    from database import db_pool
+    async with db_pool.acquire() as conn:
+        start = time.perf_counter()
+        await conn.fetch("SELECT 1;")  # oddiy so'rov
+        ping = (time.perf_counter() - start) * 1000  # ms ga aylantiramiz
 
     # 📂 Kodlar va foydalanuvchilar soni
     kodlar = await get_all_codes()
@@ -867,6 +869,7 @@ async def stats(message: types.Message):
         f"📅 Bugun qo'shilgan foydalanuvchilar: {today_users} ta"
     )
     await message.answer(text)
+
     
 @dp.message_handler(lambda m: m.text == "📤 Post qilish")
 async def start_post_process(message: types.Message):
