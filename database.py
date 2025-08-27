@@ -2,6 +2,7 @@
 import asyncpg
 import os
 from dotenv import load_dotenv
+from datetime import date
 
 load_dotenv()
 
@@ -46,6 +47,16 @@ async def init_db():
             );
         """)
 
+        async def get_today_users():
+    query = """
+        SELECT COUNT(*) 
+        FROM users 
+        WHERE DATE(created_at) = $1
+    """
+    today = date.today()
+    row = await db.fetchrow(query, today)
+    return row["count"] if row else 0
+    
         # Adminlar jadvali
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS admins (
